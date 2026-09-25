@@ -1,4 +1,3 @@
-using System.Data;
 using DocWeave.Excel;
 
 namespace DocWeave.Tests.Excel;
@@ -8,20 +7,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _53_Import_objects_matches_headers_ignoring_case_spaces_and_underscores()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Invoice No", typeof(string));
-        table.Columns.Add("customer", typeof(string));
-        table.Columns.Add("net_amount", typeof(decimal));
-        table.Rows.Add("INV-001", "Alice", 125.50m);
-        table.Rows.Add("INV-002", "Bob", 300m);
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet
-                .AddCell("B2", "Invoice Import")
-                .AddTable(table)
-                .StartAt("B4"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_53_Import_objects_matches_headers_ignoring_case_spaces_and_underscores), bytes);
+        var bytes = ExcelTestData.Load("objects-convention-headers.xlsx");
 
         var result = ExcelReader.FromBytes(bytes)
             .Sheet("Invoices")
@@ -39,16 +25,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _54_Import_objects_uses_attributes_for_header_name_ordinal_and_ignored_properties()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Invoice Number", typeof(string));
-        table.Columns.Add("Bought By", typeof(string));
-        table.Columns.Add("Net", typeof(decimal));
-        table.Rows.Add("INV-001", "Alice", 125.50m);
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_54_Import_objects_uses_attributes_for_header_name_ordinal_and_ignored_properties), bytes);
+        var bytes = ExcelTestData.Load("objects-attribute-mapping.xlsx");
 
         var invoice = Assert.Single(ExcelReader.FromBytes(bytes).ReadObjects<AttributedInvoice>().Items);
 
@@ -62,17 +39,7 @@ public sealed class ExcelObjectImportTests
     public void _55_Import_objects_counts_ordinals_from_the_start_cell()
     {
         // Imported from B4, so the second imported column is C. Column A is a note the importer never sees.
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet =>
-            {
-                sheet.AddCell("A4", "ignored");
-                sheet.AddCell("B4", "Invoice Number");
-                sheet.AddCell("C4", "Whatever the header says");
-                sheet.AddCell("B5", "INV-001");
-                sheet.AddCell("C5", "Alice");
-            })
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_55_Import_objects_counts_ordinals_from_the_start_cell), bytes);
+        var bytes = ExcelTestData.Load("objects-start-cell-b4.xlsx");
 
         var invoice = Assert.Single(ExcelReader.FromBytes(bytes).StartAt("B4").ReadObjects<AttributedInvoice>().Items);
 
@@ -104,15 +71,7 @@ public sealed class ExcelObjectImportTests
     public void _57_Import_objects_reads_excel_date_numbers_for_date_properties()
     {
         // Excel stores dates as numbers: 45123 is 16 July 2023, and the fraction is the time of day.
-        var table = new DataTable("Dates");
-        table.Columns.Add("When", typeof(decimal));
-        table.Columns.Add("Day", typeof(decimal));
-        table.Rows.Add(45123.5m, 45123m);
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Dates", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_57_Import_objects_reads_excel_date_numbers_for_date_properties), bytes);
+        var bytes = ExcelTestData.Load("objects-excel-date-numbers.xlsx");
 
         var row = Assert.Single(ExcelReader.FromBytes(bytes).ReadObjects<DatedRow>().Items);
 
@@ -123,20 +82,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _58_Import_objects_collects_problems_and_still_returns_the_good_rows()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Count", typeof(string));
-        table.Columns.Add("Paid", typeof(string));
-        table.Columns.Add("Status", typeof(string));
-        table.Columns.Add("Date", typeof(string));
-        table.Rows.Add("1", "true", "Open", "2026-01-07");     // row 2: fine
-        table.Rows.Add("2", "maybe", "Closed", "2026-01-08");  // row 3: bad Paid
-        table.Rows.Add("3", "true", "Lost", "not a date");     // row 4: bad Status and bad Date
-        table.Rows.Add("4", "true", "Paid", "2026-01-09");     // row 5: fine
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_58_Import_objects_collects_problems_and_still_returns_the_good_rows), bytes);
+        var bytes = ExcelTestData.Load("objects-good-and-bad-rows.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<TypedRow>();
 
@@ -154,16 +100,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _59_Import_objects_treats_a_blank_as_an_error_only_for_values_that_cannot_be_empty()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Count", typeof(string));
-        table.Columns.Add("OptionalCount", typeof(string));
-        table.Columns.Add("Ratio", typeof(decimal));
-        table.Rows.Add(DBNull.Value, DBNull.Value, 1m);
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_59_Import_objects_treats_a_blank_as_an_error_only_for_values_that_cannot_be_empty), bytes);
+        var bytes = ExcelTestData.Load("objects-blank-values.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<TypedRow>();
 
@@ -177,16 +114,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _60_Import_objects_rejects_fractions_and_out_of_range_values_for_whole_number_properties()
     {
-        var table = new DataTable("Counts");
-        table.Columns.Add("Count", typeof(decimal));
-        table.Rows.Add(3.5m);
-        table.Rows.Add(3000000000m);
-        table.Rows.Add(3m);
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Counts", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_60_Import_objects_rejects_fractions_and_out_of_range_values_for_whole_number_properties), bytes);
+        var bytes = ExcelTestData.Load("objects-whole-number-limits.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<TypedRow>();
 
@@ -199,15 +127,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _61_Import_objects_reports_a_missing_required_column_once_and_returns_nothing()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Label", typeof(string));
-        table.Rows.Add("one");
-        table.Rows.Add("two");
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_61_Import_objects_reports_a_missing_required_column_once_and_returns_nothing), bytes);
+        var bytes = ExcelTestData.Load("objects-missing-required-column.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<RequiredRow>();
 
@@ -221,16 +141,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _62_Import_objects_reports_a_blank_required_value_and_keeps_defaults_for_blank_optional_values()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Code", typeof(string));
-        table.Columns.Add("Label", typeof(string));
-        table.Rows.Add("A", DBNull.Value);
-        table.Rows.Add(DBNull.Value, "second");
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_62_Import_objects_reports_a_blank_required_value_and_keeps_defaults_for_blank_optional_values), bytes);
+        var bytes = ExcelTestData.Load("objects-blank-required-value.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<RequiredRow>();
 
@@ -245,14 +156,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _63_Import_objects_fails_clearly_for_a_property_type_a_cell_cannot_fill()
     {
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Tags", sheet =>
-            {
-                sheet.AddCell("A1", "Tags");
-                sheet.AddCell("A2", "a");
-            })
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_63_Import_objects_fails_clearly_for_a_property_type_a_cell_cannot_fill), bytes);
+        var bytes = ExcelTestData.Load("objects-unsupported-property-type.xlsx");
 
         var exception = Assert.Throws<NotSupportedException>(() => ExcelReader.FromBytes(bytes).ReadObjects<BadTypeRow>());
 
@@ -263,16 +167,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _64_Enumerate_objects_reports_problems_to_the_callback_as_it_goes()
     {
-        var table = new DataTable("Counts");
-        table.Columns.Add("Count", typeof(string));
-        table.Rows.Add("1");
-        table.Rows.Add("x");
-        table.Rows.Add("3");
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Counts", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_64_Enumerate_objects_reports_problems_to_the_callback_as_it_goes), bytes);
+        var bytes = ExcelTestData.Load("objects-one-bad-count.xlsx");
         var errors = new List<DocWeaveImportError>();
 
         var counts = ExcelReader.FromBytes(bytes).EnumerateObjects<TypedRow>(errors.Add).Select(item => item.Count).ToList();
@@ -284,15 +179,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _65_Import_objects_reports_progress_and_audit_without_cell_values()
     {
-        var table = new DataTable("Counts");
-        table.Columns.Add("Count", typeof(string));
-        table.Rows.Add("1");
-        table.Rows.Add("secret-value");
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Counts", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_65_Import_objects_reports_progress_and_audit_without_cell_values), bytes);
+        var bytes = ExcelTestData.Load("objects-progress-and-audit.xlsx");
         var progress = new List<DocWeaveOperationProgress>();
         var audits = new List<DocWeaveAuditEvent>();
 
@@ -311,10 +198,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _66_Import_objects_from_an_empty_sheet_still_reports_a_missing_required_column()
     {
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Empty", sheet => sheet.AddCell("A1", "Something else"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_66_Import_objects_from_an_empty_sheet_still_reports_a_missing_required_column), bytes);
+        var bytes = ExcelTestData.Load("objects-header-only-sheet.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<RequiredRow>();
 
@@ -325,16 +209,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _67_Import_positional_records_through_their_constructor_with_a_fluent_map()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Invoice No", typeof(string));
-        table.Columns.Add("Net Amount", typeof(decimal));
-        table.Columns.Add("Date", typeof(decimal));
-        table.Rows.Add("INV-001", 12.5m, 45123m);
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_67_Import_positional_records_through_their_constructor_with_a_fluent_map), bytes);
+        var bytes = ExcelTestData.Load("records-invoice-columns.xlsx");
 
         var record = Assert.Single(ExcelReader.FromBytes(bytes).ReadObjects<InvoiceRecord>().Items);
         var mapped = Assert.Single(ExcelReader.FromBytes(bytes).ReadObjects<PlainInvoice>(map => map
@@ -349,17 +224,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _68_Import_a_record_uses_parameter_defaults_and_reports_a_missing_required_parameter()
     {
-        var table = new DataTable("Reps");
-        table.Columns.Add("Sales Rep", typeof(string));
-        table.Columns.Add("Age", typeof(string));
-        table.Rows.Add("Ada", "36");
-        table.Rows.Add("Grace", DBNull.Value);
-        table.Rows.Add(DBNull.Value, "50");
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Reps", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_68_Import_a_record_uses_parameter_defaults_and_reports_a_missing_required_parameter), bytes);
+        var bytes = ExcelTestData.Load("records-reps-blank-age.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<RepRecord>();
 
@@ -372,16 +237,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _69_Import_a_class_whose_constructor_rejects_a_row_reports_the_reason()
     {
-        var table = new DataTable("Values");
-        table.Columns.Add("Value", typeof(decimal));
-        table.Rows.Add(3m);
-        table.Rows.Add(-1m);
-        table.Rows.Add(5m);
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Values", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_69_Import_a_class_whose_constructor_rejects_a_row_reports_the_reason), bytes);
+        var bytes = ExcelTestData.Load("objects-constructor-validation.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<PositiveValue>();
 
@@ -394,17 +250,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _70_Import_with_a_fluent_map_by_header_position_required_and_ignore()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Number", typeof(string));
-        table.Columns.Add("Buyer", typeof(string));
-        table.Columns.Add("Amount", typeof(decimal));
-        table.Rows.Add("INV-001", "Alice", 125.50m);
-        table.Rows.Add("INV-002", DBNull.Value, 300m);
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_70_Import_with_a_fluent_map_by_header_position_required_and_ignore), bytes);
+        var bytes = ExcelTestData.Load("objects-fluent-map-invoices.xlsx");
 
         var result = ExcelReader.FromBytes(bytes).ReadObjects<PlainInvoice>(map => map
             .Column(x => x.InvoiceNumber, "Number")
@@ -425,17 +271,7 @@ public sealed class ExcelObjectImportTests
     [Fact]
     public void _71_Enumerate_objects_accepts_a_fluent_map_and_column_selection()
     {
-        var table = new DataTable("Invoices");
-        table.Columns.Add("Number", typeof(string));
-        table.Columns.Add("Internal", typeof(string));
-        table.Columns.Add("Buyer", typeof(string));
-        table.Rows.Add("INV-001", "hidden", "Alice");
-        table.Rows.Add("INV-002", "hidden", "Bob");
-
-        var bytes = ExcelWriter.Create()
-            .AddSheet("Invoices", sheet => sheet.AddTable(table).StartAt("A1"))
-            .ToBytes();
-        ExcelTestOutput.SaveWorkbook(nameof(_71_Enumerate_objects_accepts_a_fluent_map_and_column_selection), bytes);
+        var bytes = ExcelTestData.Load("objects-column-selection.xlsx");
 
         // After selecting Number and Buyer, Buyer is the 2nd imported column, even though it is the 3rd in the sheet.
         var invoices = ExcelReader.FromBytes(bytes)

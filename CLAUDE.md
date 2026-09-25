@@ -84,6 +84,9 @@ Do not add a logging package to `DocWeave`.
   all Excel test classes**, and renaming a test renames its output file.
 - Use `Xlsx.AssertValid(bytes)` for schema validity (it prints what is wrong) and the other `Xlsx.*` helpers to inspect a workbook.
   Shared sample data is in `SampleData`. Do not copy helpers into a test class.
+- Import tests read **committed source workbooks** from `TestData/Excel/` (through `ExcelTestData.Load`), like the CSV tests read
+  `TestData/Csv/`. They must not generate their input into `TestOutput/`. Describe any new fixture in `TestData/Excel/README.md`.
+  A test that exports and then imports its own output (a round trip) may still write to `TestOutput/`.
 - `TestOutput/` is git-ignored: the tests regenerate it on every run (with new random ids each time). The files are handy to open in Excel,
   but they are not part of the repository, so do not expect to find them in a fresh checkout until the tests have run.
 - Passing `OpenXmlValidator` does **not** prove Excel opens the file cleanly. For pivots, charts and protection, tell the user which

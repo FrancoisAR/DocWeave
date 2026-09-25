@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Content Include="TestData\Csv\*.csv" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="TestData\Excel\*.xlsx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
