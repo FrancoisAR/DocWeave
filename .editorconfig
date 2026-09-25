@@ -1,0 +1,194 @@
+# EditorConfig for the DocWeave repository.
+# Rules are adapted for a class library (see CLAUDE.md).
+#
+# Every code-style rule starts at "suggestion" so it shows in the IDE but cannot break a build.
+# To make a rule count, raise it to "warning" (or "error") one rule at a time as the code catches up.
+# Two rules cannot be enforced by any built-in analyzer and live in CLAUDE.md instead:
+#   * no #region blocks
+#   * max line length (max_line_length below only draws the IDE ruler; nothing wraps or rejects long lines)
+
+root = true
+
+# ----------------------------------------------------------------------------
+# All files
+# ----------------------------------------------------------------------------
+[*]
+charset = utf-8
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{csproj,props,targets,slnx,json,xml,yml,yaml,resx}]
+indent_size = 2
+
+[*.md]
+indent_size = 2
+# Two trailing spaces mean a line break in Markdown.
+trim_trailing_whitespace = false
+
+# ----------------------------------------------------------------------------
+# C# formatting and style
+# ----------------------------------------------------------------------------
+[*.cs]
+indent_size = 4
+max_line_length = 120
+
+# Braces on their own line, everywhere.
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+
+# Namespaces and usings
+csharp_style_namespace_declarations = file_scoped:suggestion
+csharp_using_directive_placement = outside_namespace:suggestion
+dotnet_sort_system_directives_first = true
+dotnet_diagnostic.IDE0005.severity = suggestion
+
+# Always use braces, even for one-line bodies.
+csharp_prefer_braces = true:suggestion
+
+# var versus explicit types is a judgement call, so nothing is enforced either way.
+# The code base uses var throughout (roughly 440 uses), and the project rule is: use var when it
+# keeps the code clear, write the type out when it would otherwise be unclear
+# (for example var count = Process(x) where the reader cannot tell what comes back).
+# Tightening this later is one line each: change ":silent" to ":suggestion" and false for built-in types.
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = true:silent
+
+# "Use expression-bodied members only when they improve readability": never nag either way.
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_properties = true:silent
+csharp_style_expression_bodied_constructors = false:silent
+csharp_style_expression_bodied_accessors = true:silent
+
+# "Use switch expressions instead of long if/else chains"
+csharp_style_prefer_switch_expression = true:suggestion
+csharp_style_prefer_pattern_matching = true:suggestion
+
+# Argument checks: prefer ArgumentNullException.ThrowIfNull and friends over hand-written throws.
+dotnet_diagnostic.CA1510.severity = suggestion
+dotnet_diagnostic.CA1511.severity = suggestion
+dotnet_diagnostic.CA1512.severity = suggestion
+dotnet_diagnostic.CA1513.severity = suggestion
+
+# Modern collection syntax, matching the existing code.
+dotnet_style_collection_initializer = true:suggestion
+csharp_style_prefer_collection_expression = true:suggestion
+
+# ----------------------------------------------------------------------------
+# Documentation
+# "Every public class, method, property and interface must have XML documentation."
+# Needs <GenerateDocumentationFile> (set in DocWeave.csproj). Raise to "warning" once the backlog is cleared.
+# ----------------------------------------------------------------------------
+dotnet_diagnostic.CS1591.severity = suggestion
+# A doc comment that documents some parameters but not others is almost always a mistake.
+dotnet_diagnostic.CS1573.severity = warning
+dotnet_diagnostic.CS1572.severity = warning
+dotnet_diagnostic.CS1587.severity = warning
+
+# ----------------------------------------------------------------------------
+# Naming conventions (rule order in this file does not matter; the most specific rule wins)
+# ----------------------------------------------------------------------------
+
+# The severities on the individual naming rules below drive the IDE. The command-line build only reports
+# naming problems once IDE1006 itself is enabled, so it is stated here too. To turn naming into build
+# warnings, raise this line and the rules you care about to "warning".
+dotnet_diagnostic.IDE1006.severity = suggestion
+
+# Styles
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.begins_with_i.required_prefix = I
+dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+dotnet_naming_style.ends_with_async.required_suffix = Async
+dotnet_naming_style.ends_with_async.capitalization = pascal_case
+
+# Symbols
+dotnet_naming_symbols.types.applicable_kinds = class, struct, enum, delegate
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.members.applicable_kinds = method, property, event
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.required_modifiers = async
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+# Static readonly fields are constant-like, so they are PascalCase rather than _camelCase.
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+dotnet_naming_symbols.non_private_fields.applicable_kinds = field
+dotnet_naming_symbols.non_private_fields.applicable_accessibilities = public, internal, protected, protected_internal
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, private_protected
+dotnet_naming_symbols.locals_and_parameters.applicable_kinds = parameter, local
+
+# Rules
+dotnet_naming_rule.types_are_pascal_case.symbols = types
+dotnet_naming_rule.types_are_pascal_case.style = pascal_case
+dotnet_naming_rule.types_are_pascal_case.severity = suggestion
+
+dotnet_naming_rule.interfaces_begin_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_begin_with_i.style = begins_with_i
+dotnet_naming_rule.interfaces_begin_with_i.severity = suggestion
+
+dotnet_naming_rule.members_are_pascal_case.symbols = members
+dotnet_naming_rule.members_are_pascal_case.style = pascal_case
+dotnet_naming_rule.members_are_pascal_case.severity = suggestion
+
+dotnet_naming_rule.async_methods_end_with_async.symbols = async_methods
+dotnet_naming_rule.async_methods_end_with_async.style = ends_with_async
+dotnet_naming_rule.async_methods_end_with_async.severity = suggestion
+
+dotnet_naming_rule.constants_are_pascal_case.symbols = constants
+dotnet_naming_rule.constants_are_pascal_case.style = pascal_case
+dotnet_naming_rule.constants_are_pascal_case.severity = suggestion
+
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.style = pascal_case
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.severity = suggestion
+
+dotnet_naming_rule.non_private_fields_are_pascal_case.symbols = non_private_fields
+dotnet_naming_rule.non_private_fields_are_pascal_case.style = pascal_case
+dotnet_naming_rule.non_private_fields_are_pascal_case.severity = suggestion
+
+dotnet_naming_rule.private_fields_are_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_are_underscore_camel_case.style = underscore_camel_case
+dotnet_naming_rule.private_fields_are_underscore_camel_case.severity = suggestion
+
+dotnet_naming_rule.locals_and_parameters_are_camel_case.symbols = locals_and_parameters
+dotnet_naming_rule.locals_and_parameters_are_camel_case.style = camel_case
+dotnet_naming_rule.locals_and_parameters_are_camel_case.severity = suggestion
+
+# ----------------------------------------------------------------------------
+# Library-only rules
+# DocWeave is a library: a library must not capture the caller's synchronization context.
+# (There is no async code yet; this applies as soon as there is.)
+# ----------------------------------------------------------------------------
+[DocWeave/**.cs]
+dotnet_diagnostic.CA2007.severity = warning
+dotnet_diagnostic.CA2016.severity = suggestion
+
+# ----------------------------------------------------------------------------
+# Tests: readable scenario names win over the naming rules and the line-length ruler
+# ----------------------------------------------------------------------------
+[DocWeave.Tests/**.cs]
+# Test methods are named like _03_Export_customer_invoice_report or Csv_export_writes_empty_cells.
+dotnet_diagnostic.IDE1006.severity = none
+dotnet_diagnostic.CS1591.severity = none
+# Embedded JSON and CSV samples are long.
+max_line_length = off
+# Test code awaits nothing of the caller's, so ConfigureAwait does not matter here.
+dotnet_diagnostic.CA2007.severity = none
+
+# ----------------------------------------------------------------------------
+# Build output
+# ----------------------------------------------------------------------------
+[**/{bin,obj}/**]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none

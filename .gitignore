@@ -427,3 +427,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Files the tests generate on every run. They are rewritten with new random ids each time, so tracking them only adds noise.
+DocWeave.Tests/TestOutput/
