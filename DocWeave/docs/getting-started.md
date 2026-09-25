@@ -182,6 +182,128 @@ foreach (var row in CsvReader.FromFile("large.csv").EnumerateRows())
 }
 ```
 
+## Reading Rows Into Objects
+
+`ReadObjects<T>()` turns each row into an object, for both Excel and CSV. Problems are collected in a list; a bad value does not stop the import.
+
+```csharp
+public sealed class Invoice
+{
+    public string? InvoiceNo { get; set; }            // matches the header "Invoice No"
+    public string? Customer { get; set; }
+    public decimal NetAmount { get; set; }            // matches "Net Amount", "net_amount" or "NetAmount"
+    public DateTime InvoiceDate { get; set; }
+    public Status Status { get; set; }                // an enum, matched by name ignoring case
+    public int? Quantity { get; set; }                // blank gives null
+
+    [DocWeaveColumn("Sales Rep", Required = true)]    // a different header, and a blank is an error
+    public string? Rep { get; set; }
+
+    [DocWeaveColumn(Ordinal = 9)]                     // the 9th imported column, whatever its header says
+    public string? Notes { get; set; }
+
+    [DocWeaveIgnore]                                  // never filled from the file
+    public string? Scratch { get; set; }
+}
+
+var result = ExcelReader.FromFile("invoices.xlsx")
+    .Sheet("Invoices")
+    .StartAt("B4")
+    .ReadObjects<Invoice>();
+
+foreach (var invoice in result.Items)
+{
+    // Only rows with no problems.
+}
+
+foreach (var error in result.Errors)
+{
+    Console.WriteLine($"Row {error.RowNumber}, column '{error.Column}': {error.Message}");
+}
+```
+
+The same call works on CSV: `CsvReader.FromFile("invoices.csv").ReadObjects<Invoice>()`.
+
+How columns are matched, in order:
+
+1. `[DocWeaveColumn(Ordinal = n)]`: the n-th imported column, counting from 1. The count starts at the start cell and applies after any column selection.
+2. `[DocWeaveColumn("header")]`: the column with that header.
+3. The property name. Case, spaces, underscores and hyphens are ignored, so `NetAmount` matches `Net Amount`.
+
+What is converted: text, whole numbers (`int`, `long`, `short`, `byte` and the unsigned kinds), `decimal`, `double`, `float`, `bool` (`true/false`, `yes/no`, `1/0`), `DateTime`, `DateOnly`, `TimeOnly`, `DateTimeOffset`, `TimeSpan`, `Guid`, enums, and the nullable form of each. Numbers and dates are read with the invariant culture, so `1.5` is one and a half and `1,5` is reported as an error rather than read as 15. In an Excel file a date property also accepts the number Excel stores for a date. Other property types throw `NotSupportedException` when the read starts; mark them `[DocWeaveIgnore]`.
+
+Rules for blanks and errors:
+
+- A blank cell leaves the property as its constructor or initializer set it. If the property is a plain value type such as `int`, or is marked `Required = true`, a blank is an error instead.
+- A row with any error is left out of `Items`, and every problem in that row is listed in `Errors`. `RowNumber` is the worksheet row, or the CSV record number, so it matches what you see in the file.
+- A required column that is missing from the file is one error with `RowNumber` 0, and no objects are returned.
+
+Records and constructors:
+
+- A class with a public parameterless constructor is created first and then filled property by property. `init` setters work.
+- A type without one, such as a positional record, is built through its public constructor (the one with the most parameters). Parameters are matched to columns exactly as properties are, and a value the file does not supply becomes the parameter's default value.
+- Properties the constructor does not take (for example an `init` property added to a record) are filled after it is built.
+- Put `[DocWeaveColumn]` on the parameter, or on the property with `[property: DocWeaveColumn(...)]`.
+- If the constructor or a setter throws, the row is not returned and the exception message is listed as an error for that row.
+- A type that cannot be built (abstract, no public constructor, or several equal constructors) throws `NotSupportedException` when the read starts.
+
+```csharp
+public sealed record Invoice(
+    string InvoiceNo,                                    // matches "Invoice No"
+    decimal NetAmount,
+    [DocWeaveColumn("Sales Rep", Required = true)] string Rep,
+    int Quantity = 1);                                   // 1 when the column is missing or blank
+
+var invoices = CsvReader.FromFile("invoices.csv").ReadObjects<Invoice>().Items;
+```
+
+Mapping in code, for a class you cannot put attributes on, or to read one class from differently laid out files:
+
+```csharp
+var result = ExcelReader.FromFile("invoices.xlsx")
+    .Sheet("Invoices")
+    .ReadObjects<Invoice>(map => map
+        .Column(x => x.InvoiceNo, "Number")             // by header
+        .Column(x => x.NetAmount, 3)                    // by position (the 3rd imported column)
+        .Column(x => x.Rep, "Sales Rep", required: true)
+        .Ignore(x => x.Quantity));
+```
+
+- `Column(x => x.Property, "header")`, `Column(x => x.Property, position)`, `Required(x => x.Property)` and `Ignore(x => x.Property)` are the four settings.
+- A setting made in code replaces the attribute on that property. A property that is not mentioned keeps its attribute, or is matched by name.
+- `Column(...)` on a property marked `[DocWeaveIgnore]` brings it back.
+- `EnumerateObjects<T>(map => ..., onError)` takes the same map. Pass `null` for `onError` to ignore problems.
+
+To read lazily and report problems as they happen, use `EnumerateObjects<T>(onError)`:
+
+```csharp
+foreach (var invoice in ExcelReader.FromFile("big.xlsx").EnumerateObjects<Invoice>(error => log.Warn(error.Message)))
+{
+    // One object at a time.
+}
+```
+
+## Streaming Large Excel Files
+
+`EnumerateRows()` reads a worksheet one row at a time instead of loading it all, as CSV already did.
+
+```csharp
+foreach (var row in ExcelReader.FromFile("large.xlsx").Sheet("Data").EnumerateRows())
+{
+    // row.Values["Header"]
+}
+```
+
+On a 4.6 MB sheet of 200,000 rows, measured on the development machine, `ReadRows()` needed about 180 MB of extra memory and `EnumerateRows()` about 8 MB. These numbers depend on the machine and the data.
+
+Differences from `ReadRows()`:
+
+- The header row sets the columns, because later rows have not been read yet. A cell to the right of the header row is returned as `Column N` when no column selection is configured, and left out otherwise. `ReadRows()` sees the whole sheet first, so it gives such a column its own header.
+- The source must be seekable, because an `.xlsx` file is a zip archive.
+- The workbook is closed when the loop ends or is stopped early.
+- Cancellation is checked for each row. Progress and audit events are not sent.
+- The shared string table (where Excel keeps its text) is still read into memory once.
+
 ## Progress, Cancellation And Audit
 
 All main fluent builders expose progress, cancellation and audit hooks.

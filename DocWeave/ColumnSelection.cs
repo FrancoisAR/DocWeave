@@ -26,6 +26,11 @@ internal sealed class ColumnSelection
     public List<string> ExcludeHeaders { get; } = [];
 
     /// <summary>
+    /// True when any include or exclude rule has been added.
+    /// </summary>
+    public bool HasRules => IncludeLetters.Count + IncludeHeaders.Count + ExcludeLetters.Count + ExcludeHeaders.Count > 0;
+
+    /// <summary>
     /// Returns the zero-based indexes of the selected columns. Nothing included means every column.
     /// </summary>
     public IReadOnlyList<int> Resolve(IReadOnlyList<string> headers)

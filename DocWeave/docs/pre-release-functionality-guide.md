@@ -27,7 +27,9 @@ This guide lists the current pre-release functionality in a user-friendly form. 
 - [Pivot Tables](#pivot-tables)
 - [Progress Reporting](#progress-reporting)
 - [Protection](#protection)
+- [Reading Rows Into Objects](#reading-rows-into-objects)
 - [Repeaters](#repeaters)
+- [Streaming Large Excel Files](#streaming-large-excel-files)
 - [Styling](#styling)
 - [Tables](#tables)
 - [Testing and Generated Examples](#testing-and-generated-examples)
@@ -156,6 +158,8 @@ Supported result shapes:
 - `ReadDictionaries()`
 - `ReadDictionaryResult()`
 - `ReadDataTable(tableName)`
+- `EnumerateRows()`, which reads one row at a time
+- `ReadObjects<T>()` and `EnumerateObjects<T>()`, which fill your own class
 
 Example:
 
@@ -527,6 +531,7 @@ Current import options:
 Supported result shapes:
 
 - Lazy row enumeration.
+- Objects of your own class (`ReadObjects<T>()`, `EnumerateObjects<T>()`).
 - Row list.
 - Import result.
 - Dictionaries.
@@ -585,6 +590,30 @@ byte[] bytes = ExcelTemplateWriter.FromJson(templateJson)
     .WithParameter("createdBy", "Finance API")
     .ToBytes();
 ```
+
+## Reading Rows Into Objects
+
+Both `ExcelReader` and `CsvReader` can fill your own class:
+
+```csharp
+var result = ExcelReader.FromFile("invoices.xlsx").Sheet("Invoices").ReadObjects<Invoice>();
+// result.Items   the objects made from rows with no problems
+// result.Errors  every problem: RowNumber, Column, Property, Value, Message
+```
+
+- Properties are matched to columns by header name (ignoring case, spaces and underscores), by `[DocWeaveColumn("header")]`, or by position with `[DocWeaveColumn(Ordinal = n)]`. `[DocWeaveIgnore]` skips a property.
+- Problems are collected, not thrown. A row with a problem contributes no object, and each of its problems is listed.
+- `Required = true` makes a blank value, or a missing column, an error.
+- Numbers and dates use the invariant culture. In Excel a date property also accepts the number Excel stores for a date.
+- `EnumerateObjects<T>(onError)` does the same lazily, one object at a time.
+- Positional records and other types with only a constructor are supported: the values go through the constructor, and a parameter default is used when the file has no value.
+- The mapping can also be written in code, without attributes: `ReadObjects<Invoice>(map => map.Column(x => x.Rep, "Sales Rep", required: true).Ignore(x => x.Notes))`.
+
+Details and the list of supported property types are in [getting-started.md](getting-started.md#reading-rows-into-objects).
+
+## Streaming Large Excel Files
+
+`ExcelReader...EnumerateRows()` (and `EnumerateObjects<T>()`) read a worksheet one row at a time, so memory does not grow with the number of rows. The source must be seekable. See [getting-started.md](getting-started.md#streaming-large-excel-files) for the differences from `ReadRows()`.
 
 ## CSV Templates
 

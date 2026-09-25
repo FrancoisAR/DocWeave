@@ -12,7 +12,7 @@ What DocWeave does not do yet, and what could come next. Nothing here is schedul
 | Area | State |
 |---|---|
 | Excel `.xlsx` export (fluent API) | Working: tables, formulas, totals, styles, charts, pivot tables, validation, comments, protection, repeaters |
-| Excel `.xlsx` import | Working for worksheet data only (dictionaries, `DataTable`, rows) |
+| Excel `.xlsx` import | Working: dictionaries, `DataTable`, rows, typed objects (classes, structs, positional records; attributes or code mapping), and row-by-row streaming (`EnumerateRows`). Worksheet data only |
 | CSV import and export | Working, including streaming reads |
 | JSON templates (Excel and CSV) | Working, with the gaps in section 2 |
 | Web API | Request and response contracts only. No host project |
@@ -82,9 +82,9 @@ print areas, defined (named) ranges, row/column outlining, tab colours.
 
 | # | Item | Size | Notes |
 |---|---|---|---|
-| I1 | **Typed object mapping** | M | [design] Verified: there is no `ReadObjects<T>`; results are dictionaries, rows or `DataTable`. Include header-to-property mapping, type conversion, and a validation mode that collects errors instead of stopping at the first. |
-| I2 | **Custom converters and error handling options** | M | [design] "Import Conversion Options" and "Import Error Handling" in [fluent-api-capabilities.md](fluent-api-capabilities.md). |
-| I3 | **Streaming Excel import** | M-L | [design] Verified: import loads worksheet rows into memory. Use the SDK's `OpenXmlReader` so large sheets are read row by row. |
+| I1 | **Typed object mapping** | S remaining | **Done:** `ReadObjects<T>()` and `EnumerateObjects<T>()` for Excel and CSV; matching by header, `[DocWeaveColumn]` name or ordinal, or in code with `ReadObjects<T>(map => ...)`; classes, structs and positional records (built through the constructor, with parameter defaults); the common types; problems collected in an error list. **Still to do:** per-property date and number formats (see I2), and reading nested or list-valued properties. |
+| I2 | **Custom converters and conversion options** | M | [design] Per-property converters, and options such as culture and date formats (see "Import Conversion Options" and "Import Error Handling" in [fluent-api-capabilities.md](fluent-api-capabilities.md)). Object mapping already collects errors instead of throwing, but `ReadRows` and `ReadDictionaries` still return text, and a malformed CSV row can still throw. |
+| I3 | **Streaming Excel import** | done | `EnumerateRows()` reads a sheet row by row (measured on 200,000 rows: about 8 MB of extra memory against about 180 MB for `ReadRows()`). **Still to do:** the shared string table is still read into memory once; a non-seekable source must be buffered by the caller; progress and audit events are not sent by the streaming methods. |
 | I4 | **Multi-sheet and batch import** | M | [design] Several sheets or several files in one call, with per-source passwords. |
 | I5 | **Import into a `DataSet`** | S | [design] |
 | I6 | **Richer read of an existing workbook** | L | Import ignores styles, comments, charts and protection. [suggestion] Probably not worth doing until someone asks. |
@@ -118,11 +118,11 @@ Design basis: the shared core (source data, table or document spec, renderer) de
 
 ## 9. Suggested order
 
-1. **Foundations:** T1 schema version, T3 secrets by reference, E11 real Excel dates, Q1 real-Excel acceptance, Q2 and Q3 cleanup.
+1. **Foundations:** T1 schema version, T3 secrets by reference, E11 real Excel dates, Q1 real-Excel acceptance, Q2 and Q3 cleanup. (I1 typed import and I3 streaming import are done; see section 6.)
 2. **Make templates production-ready:** T2 validation results, T4 formula policy, T5 stored templates, T7 multiple chart series.
-3. **Round out Excel:** E1 conditional formatting, E2 images, E3 hyperlinks, E4 page setup, then I1 typed import.
+3. **Round out Excel:** E1 conditional formatting, E2 images, E3 hyperlinks, E4 page setup, then I2 (converters and formats).
 4. **Service use:** W1 host, W2 background operations, S1 encryption.
-5. **Scale:** E9 streaming export, I3 streaming import.
+5. **Scale:** E9 streaming export. (I3 streaming import is done.)
 6. **New formats:** F1 package split, then F4 (the cheap formats), then F2 Word, F3 PowerPoint, F5 PDF.
 
 T6 (template workbooks) could move up this list if migrating from the legacy library, or users who design reports in Excel first, are the

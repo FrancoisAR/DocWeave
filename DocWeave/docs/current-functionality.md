@@ -413,6 +413,8 @@ Output shapes:
 - `ReadDictionaries()`
 - `ReadDictionaryResult()`
 - `ReadDataTable(tableName)`
+- `EnumerateRows()` for one row at a time.
+- `ReadObjects<T>()` and `EnumerateObjects<T>()` for typed objects, with problems collected in a list.
 
 Example:
 
@@ -502,6 +504,7 @@ Output shapes:
 - `ReadDictionaries()`.
 - `ReadDictionaryResult()`.
 - `ReadDataTable(tableName)`.
+- `ReadObjects<T>()` and `EnumerateObjects<T>()` for typed objects, with problems collected in a list.
 
 Example:
 
