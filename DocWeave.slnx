@@ -6,4 +6,6 @@
   </Folder>
   <Project Path="DocWeave.Tests/DocWeave.Tests.csproj" />
   <Project Path="DocWeave/DocWeave.csproj" />
+  <Project Path="DocWeaveNS.Tests/DocWeaveNS.Tests.csproj" />
+  <Project Path="DocWeaveNS/DocWeaveNS.csproj" />
 </Solution>
