@@ -18,7 +18,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore
+      - name: Restore NuGet projects only
         run: |
           dotnet restore DocWeave/DocWeave.csproj
           dotnet restore DocWeaveNS/DocWeaveNS.csproj
