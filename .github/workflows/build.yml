@@ -1,0 +1,52 @@
+name: Build and Publish NuGet Packages
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'   # Publish only when pushing version tags
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build all projects
+        run: dotnet build --configuration Release
+
+      - name: Pack NuGet packages
+        run: dotnet pack --configuration Release --output ./artifacts
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write     # REQUIRED for Trusted Publishing
+      contents: read
+
+    steps:
+      - name: Download built packages
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./packages
+
+      - name: Publish to NuGet.org (Trusted Publishing)
+        run: dotnet nuget push "./packages/*.nupkg" --source "https://api.nuget.org/v3/index.json"
