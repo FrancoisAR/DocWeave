@@ -1,0 +1,38 @@
+<Solution>
+  <Folder Name="/Examples/">
+    <File Path="Examples/DocWeave.Examples/README.md" />
+    <Project Path="Examples/DocWeave.Examples/DocWeave.Examples.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Documentation/">
+    <File Path="Documentation/api-export-schema-design.md" />
+    <File Path="Documentation/csv-specific-scenarios.md" />
+    <File Path="Documentation/current-functionality.md" />
+    <File Path="Documentation/excel-implementation-plan.md" />
+    <File Path="Documentation/export-scenarios-catalogue.md" />
+    <File Path="Documentation/fluent-api-capabilities.md" />
+    <File Path="Documentation/fluent-technical-approach.md" />
+    <File Path="Documentation/getting-started.md" />
+    <File Path="Documentation/interface-technical-plan.md" />
+    <File Path="Documentation/pre-release-functionality-guide.md" />
+    <File Path="Documentation/roadmap.md" />
+    <File Path="Documentation/template-api-contract-v1.md" />
+    <File Path="Documentation/template-generator-tool-design.md" />
+  </Folder>
+  <Folder Name="/Documentation/TemplateGeneratorTool/">
+    <File Path="Documentation/TemplateGeneratorTool/functional-specification.md" />
+    <File Path="Documentation/TemplateGeneratorTool/technical-specification.md" />
+  </Folder>
+  <Folder Name="/Tool/">
+    <Project Path="Tool/DocWeave.Tool/DocWeave.Tool.csproj" />
+    <Project Path="Tool/DocWeave.Tool.Ui/DocWeave.Tool.Ui.csproj" />
+  </Folder>
+  <Project Path="DocWeave.Tests/DocWeave.Tests.csproj" />
+  <Project Path="DocWeave/DocWeave.csproj" />
+  <Project Path="DocWeaveNS.Tests/DocWeaveNS.Tests.csproj" />
+  <Project Path="DocWeaveNS/DocWeaveNS.csproj" />
+</Solution>

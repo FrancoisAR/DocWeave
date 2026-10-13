@@ -1,0 +1,108 @@
+﻿<Window x:Class="DocWeave.Tool.Ui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DocWeave.Tool.Ui"
+        mc:Ignorable="d"
+        Title="DocWeave Template Tool" Height="820" Width="1220" Loaded="Window_Loaded">
+    <DockPanel>
+        <ToolBar DockPanel.Dock="Top">
+            <Button Click="NewTemplate_Click">New</Button>
+            <Button Click="OpenTemplate_Click">Open JSON</Button>
+            <Button Click="SaveTemplate_Click">Save</Button>
+            <Separator />
+            <Button Click="ValidateTemplate_Click">Validate</Button>
+            <Button Click="PreviewTemplate_Click">Preview</Button>
+            <Button Click="RenderTemplate_Click">Render Sample</Button>
+            <Button Click="BuildRequest_Click">Build Request</Button>
+        </ToolBar>
+
+        <Grid Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="360" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="Designer" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12" />
+                    <TextBlock Text="Template kind" FontWeight="SemiBold" />
+                    <ComboBox x:Name="KindBox" Margin="0,4,0,12">
+                        <ComboBoxItem Content="excel-export" IsSelected="True" />
+                        <ComboBoxItem Content="csv-export" />
+                        <ComboBoxItem Content="excel-import" />
+                        <ComboBoxItem Content="csv-import" />
+                    </ComboBox>
+                    <TextBlock Text="Output format" FontWeight="SemiBold" />
+                    <ComboBox x:Name="FormatBox" Margin="0,4,0,12">
+                        <ComboBoxItem Content="xlsx" IsSelected="True" />
+                        <ComboBoxItem Content="csv" />
+                    </ComboBox>
+                    <TextBlock Text="File name" FontWeight="SemiBold" />
+                    <TextBox x:Name="FileNameBox" Margin="0,4,0,12" Text="report.xlsx" />
+                    <TextBlock Text="Source name" FontWeight="SemiBold" />
+                    <TextBox x:Name="SourceNameBox" Margin="0,4,0,12" Text="rows" />
+                    <TextBlock Text="Sheet name" FontWeight="SemiBold" />
+                    <TextBox x:Name="SheetNameBox" Margin="0,4,0,12" Text="Report" />
+                    <TextBlock Text="Title" FontWeight="SemiBold" />
+                    <TextBox x:Name="TitleBox" Margin="0,4,0,12" Text="Report" />
+                    <TextBlock Text="Columns" FontWeight="SemiBold" />
+                    <DataGrid x:Name="ColumnsGrid" Margin="0,4,0,8" MinHeight="180" AutoGenerateColumns="False"
+                              CanUserAddRows="True" CanUserDeleteRows="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                            <DataGridCheckBoxColumn Header="Required" Binding="{Binding Required, UpdateSourceTrigger=PropertyChanged}" Width="80" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <UniformGrid Columns="2" Margin="0,4,0,16">
+                        <Button Click="ApplyDesigner_Click" Margin="0,0,4,0">Apply To JSON</Button>
+                        <Button Click="SyncDesigner_Click" Margin="4,0,0,0">Sync From JSON</Button>
+                    </UniformGrid>
+                    <TextBlock Text="Current template" FontWeight="SemiBold" />
+                    <TextBlock x:Name="CurrentTemplatePathText" Text="Unsaved" TextWrapping="Wrap" Margin="0,4,0,12" />
+                    <TextBlock Text="Sample data" FontWeight="SemiBold" />
+                    <Button Click="OpenData_Click" Margin="0,4,0,12">Open Sample Data</Button>
+                </StackPanel>
+            </ScrollViewer>
+
+            <TabControl Grid.Column="2">
+                <TabItem Header="Template JSON">
+                    <TextBox x:Name="TemplateJsonBox" AcceptsReturn="True" AcceptsTab="True" FontFamily="Consolas" FontSize="13"
+                             HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                </TabItem>
+                <TabItem Header="Sample Data">
+                    <TextBox x:Name="SampleDataBox" AcceptsReturn="True" AcceptsTab="True" FontFamily="Consolas" FontSize="13"
+                             HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                </TabItem>
+                <TabItem Header="Validation">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="ValidationSummaryText" Margin="8" FontWeight="SemiBold" />
+                        <DataGrid x:Name="ValidationGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="100" />
+                                <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="180" />
+                                <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="160" />
+                                <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Preview">
+                    <TextBox x:Name="PreviewBox" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" FontSize="13"
+                             HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                </TabItem>
+                <TabItem Header="Request JSON">
+                    <TextBox x:Name="RequestJsonBox" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" FontSize="13"
+                             HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </DockPanel>
+</Window>

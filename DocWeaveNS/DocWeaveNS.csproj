@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>DocWeaveNS</AssemblyName>
+    <RootNamespace>DocWeave</RootNamespace>
+    <PackageId>DocWeaveNS</PackageId>
+    <Version>0.1.0</Version>
+    <Title>DocWeaveNS</Title>
+    <Authors>Francois Roux</Authors>
+    <Company>Francois Roux</Company>
+    <Product>DocWeave</Product>
+    <Description>.NET Standard 2.0 compatible variant of DocWeave for importing and exporting Excel (.xlsx) and CSV files from .NET Framework applications.</Description>
+    <PackageReleaseNotes>Initial preview compatibility package for .NET Standard 2.0 and .NET Framework-era consumers. Mirrors the DocWeave API surface where practical while allowing compatibility-specific fixes over time.</PackageReleaseNotes>
+    <PackageTags>excel;xlsx;csv;openxml;export;import;netstandard;netfx</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/FrancoisAR/DocWeave</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/FrancoisAR/DocWeave.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The repository README is shown on nuget.org. -->
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <PackageReference Include="System.Text.Json" Version="9.0.9" />
+  </ItemGroup>
+
+</Project>
