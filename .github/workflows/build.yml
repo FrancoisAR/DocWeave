@@ -3,7 +3,7 @@ name: Build and Publish NuGet Packages
 on:
   push:
     tags:
-      - 'v*.*.*'   # Publish only when pushing version tags
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -18,14 +18,20 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore
+        run: |
+          dotnet restore DocWeave/DocWeave.csproj
+          dotnet restore DocWeaveNS/DocWeaveNS.csproj
 
-      - name: Build all projects
-        run: dotnet build --configuration Release
+      - name: Build NuGet projects only
+        run: |
+          dotnet build DocWeave/DocWeave.csproj --configuration Release
+          dotnet build DocWeaveNS/DocWeaveNS.csproj --configuration Release
 
       - name: Pack NuGet packages
-        run: dotnet pack --configuration Release --output ./artifacts
+        run: |
+          dotnet pack DocWeave/DocWeave.csproj --configuration Release --output ./artifacts
+          dotnet pack DocWeaveNS/DocWeaveNS.csproj --configuration Release --output ./artifacts
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -38,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write     # REQUIRED for Trusted Publishing
+      id-token: write
       contents: read
 
     steps:
