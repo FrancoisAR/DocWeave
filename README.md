@@ -5,9 +5,9 @@ DocWeave is a .NET file-processing engine that lets developers import, export, t
 > **Status: preview.** The public API can still change before 1.0.
 
 ## Install
-(not yet release as Nuget)
+
 ```
-dotnet add package DocWeave --prerelease
+dotnet add package DocWeave
 ```
 
 This library is published in two target frameworks—netstandard2.0 and .NET 10—to support two distinct runtime families. The netstandard2.0 build ensures compatibility with .NET Framework applications, while the .NET 10 build is intended for modern .NET (6 and above).

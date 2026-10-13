@@ -6,16 +6,14 @@
     <Nullable>enable</Nullable>
     <!-- Also required for the missing-XML-documentation rule (CS1591) in .editorconfig to report anything. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-
-  <!-- NuGet package metadata. PackageId defaults to the project name (DocWeave). -->
-  <PropertyGroup>
+    <!-- NuGet package metadata. PackageId defaults to the project name (DocWeave). -->
     <Version>0.1.0</Version>
     <Title>DocWeave</Title>
     <Authors>Francois Roux</Authors>
     <Company>Francois Roux</Company>
     <Product>DocWeave</Product>
     <PackageId>DocWeave</PackageId>
+    <PackageCopyright>Copyright © 2026 Francois</PackageCopyright>
     <Description>Fluent API and JSON templates for exporting and importing Excel (.xlsx) and CSV files, built on the Open XML SDK. Supports styled tables, formulas, charts, pivot tables, data validation and typed CSV import.</Description>
     <PackageReleaseNotes>Initial preview package for modern .NET. Includes Excel and CSV import/export, JSON template-driven exports/imports, Web API contract DTOs, and progress/cancellation/audit hooks.</PackageReleaseNotes>
     <PackageTags>excel;xlsx;csv;openxml;export;import;pivot-table;fluent</PackageTags>
@@ -29,7 +27,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!-- <GeneratePackageOnBuild>true</GeneratePackageOnBuild> -->
   </PropertyGroup>
 
   <ItemGroup>
