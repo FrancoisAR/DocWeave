@@ -81,9 +81,30 @@ internal static class ExcelTemplateStyles
 
         if (element.TryGetProperty("border", out var border))
         {
-            var style = ParseBorderStyle(border.GetOptionalString("style") ?? "thin");
             var color = border.GetOptionalString("color") ?? "#000000";
-            builder.Border(style, color);
+            var hasSides = new[] { "top", "left", "bottom", "right" }.Any(side => border.TryGetProperty(side, out _));
+            if (border.TryGetProperty("style", out _) || !hasSides)
+            {
+                builder.Border(ParseBorderStyle(border.GetOptionalString("style") ?? "thin"), color);
+            }
+
+            foreach (var side in new[] { "top", "left", "bottom", "right" })
+            {
+                if (!border.TryGetProperty(side, out var value))
+                {
+                    continue;
+                }
+
+                var sideStyle = ParseBorderStyle(value.GetOptionalString("style") ?? "thin");
+                var sideColor = value.GetOptionalString("color") ?? color;
+                switch (side)
+                {
+                    case "top": builder.BorderTop(sideStyle, sideColor); break;
+                    case "left": builder.BorderLeft(sideStyle, sideColor); break;
+                    case "bottom": builder.BorderBottom(sideStyle, sideColor); break;
+                    case "right": builder.BorderRight(sideStyle, sideColor); break;
+                }
+            }
         }
 
         if (element.TryGetProperty("alignment", out var alignment))

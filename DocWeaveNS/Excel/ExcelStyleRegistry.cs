@@ -18,8 +18,15 @@ internal sealed record ExcelStyleSpec(
     ExcelBorderLineStyle BorderStyle,
     string? BorderColor)
 {
+    public ExcelBorderSideSpec? TopBorder { get; init; }
+    public ExcelBorderSideSpec? BottomBorder { get; init; }
+    public ExcelBorderSideSpec? LeftBorder { get; init; }
+    public ExcelBorderSideSpec? RightBorder { get; init; }
+
     public static ExcelStyleSpec Empty { get; } = new(false, false, false, null, null, null, null, ExcelFillPattern.Solid, null, null, ExcelNumberFormat.General, ExcelBorderLineStyle.None, null);
 }
+
+internal sealed record ExcelBorderSideSpec(ExcelBorderLineStyle Style, string Color);
 
 internal sealed class ExcelStyleRegistry
 {
@@ -70,7 +77,7 @@ internal sealed class ExcelStyleRegistry
                 NumberFormatId = GetNumberFormatId(style, numberingFormats),
                 ApplyFont = true,
                 ApplyFill = style.BackgroundColor is not null,
-                ApplyBorder = style.BorderStyle != ExcelBorderLineStyle.None,
+                ApplyBorder = style.BorderStyle != ExcelBorderLineStyle.None || style.TopBorder is not null || style.BottomBorder is not null || style.LeftBorder is not null || style.RightBorder is not null,
                 ApplyNumberFormat = style.NumberFormat != ExcelNumberFormat.General
             };
 
@@ -152,23 +159,26 @@ internal sealed class ExcelStyleRegistry
 
     private static Border CreateBorder(ExcelStyleSpec style)
     {
-        if (style.BorderStyle == ExcelBorderLineStyle.None)
-        {
-            return new Border();
-        }
-
-        var borderStyle = MapBorderStyle(style.BorderStyle);
-        var color = new Color { Rgb = new HexBinaryValue(style.BorderColor ?? "FF000000") };
-
-        // OpenXML models every side separately, even when the API presents a simple all-side border.
-        return new Border(
-            new LeftBorder(new Color { Rgb = color.Rgb }) { Style = borderStyle },
-            new RightBorder(new Color { Rgb = color.Rgb }) { Style = borderStyle },
-            new TopBorder(new Color { Rgb = color.Rgb }) { Style = borderStyle },
-            new BottomBorder(new Color { Rgb = color.Rgb }) { Style = borderStyle },
-            new DiagonalBorder());
+        var fallback = new ExcelBorderSideSpec(style.BorderStyle, style.BorderColor ?? "FF000000");
+        var border = new Border();
+        border.Append(CreateBorderSide<LeftBorder>(style.LeftBorder ?? fallback));
+        border.Append(CreateBorderSide<RightBorder>(style.RightBorder ?? fallback));
+        border.Append(CreateBorderSide<TopBorder>(style.TopBorder ?? fallback));
+        border.Append(CreateBorderSide<BottomBorder>(style.BottomBorder ?? fallback));
+        border.Append(new DiagonalBorder());
+        return border;
     }
 
+    private static T CreateBorderSide<T>(ExcelBorderSideSpec side) where T : BorderPropertiesType, new()
+    {
+        var result = new T { Style = MapBorderStyle(side.Style) };
+        if (side.Style != ExcelBorderLineStyle.None)
+        {
+            result.Append(new Color { Rgb = new HexBinaryValue(side.Color) });
+        }
+
+        return result;
+    }
     private static BorderStyleValues MapBorderStyle(ExcelBorderLineStyle style)
     {
         return style switch

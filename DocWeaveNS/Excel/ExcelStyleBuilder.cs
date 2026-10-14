@@ -124,9 +124,42 @@ public sealed class ExcelStyleBuilder
     {
         Spec = Spec with
         {
+            TopBorder = null, BottomBorder = null, LeftBorder = null, RightBorder = null,
             BorderStyle = style,
             BorderColor = ExcelColor.Normalize(color)
         };
+        return this;
+    }
+    /// <summary>
+    /// Sets the top border style and color independently.
+    /// </summary>
+    public ExcelStyleBuilder BorderTop(ExcelBorderLineStyle style = ExcelBorderLineStyle.Thin, string color = "#000000")
+    {
+        Spec = Spec with { TopBorder = new ExcelBorderSideSpec(style, ExcelColor.Normalize(color)) };
+        return this;
+    }
+    /// <summary>
+    /// Sets the left border style and color independently.
+    /// </summary>
+    public ExcelStyleBuilder BorderLeft(ExcelBorderLineStyle style = ExcelBorderLineStyle.Thin, string color = "#000000")
+    {
+        Spec = Spec with { LeftBorder = new ExcelBorderSideSpec(style, ExcelColor.Normalize(color)) };
+        return this;
+    }
+    /// <summary>
+    /// Sets the bottom border style and color independently.
+    /// </summary>
+    public ExcelStyleBuilder BorderBottom(ExcelBorderLineStyle style = ExcelBorderLineStyle.Thin, string color = "#000000")
+    {
+        Spec = Spec with { BottomBorder = new ExcelBorderSideSpec(style, ExcelColor.Normalize(color)) };
+        return this;
+    }
+    /// <summary>
+    /// Sets the right border style and color independently.
+    /// </summary>
+    public ExcelStyleBuilder BorderRight(ExcelBorderLineStyle style = ExcelBorderLineStyle.Thin, string color = "#000000")
+    {
+        Spec = Spec with { RightBorder = new ExcelBorderSideSpec(style, ExcelColor.Normalize(color)) };
         return this;
     }
 }
