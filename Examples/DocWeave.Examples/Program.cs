@@ -39,6 +39,7 @@ Run("direct-csv-02-object-import-with-mapping", DirectCsvObjectImportWithMapping
 
 Console.WriteLine();
 BorderExamples.Run(outputRoot);
+ReportingExamples.Run(outputRoot);
 Console.WriteLine("Done.");
 
 void Run(string name, Action<string> scenario)
