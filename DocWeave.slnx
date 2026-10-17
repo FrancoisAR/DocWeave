@@ -9,6 +9,7 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Documentation/">
+    <File Path="Documentation/volume-testing.md" />
     <File Path="Documentation/api-export-schema-design.md" />
     <File Path="Documentation/csv-specific-scenarios.md" />
     <File Path="Documentation/current-functionality.md" />
